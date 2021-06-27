@@ -182,34 +182,58 @@ public class ConfigValidationUtils {
 
     public static final String IPV6_END_MARK = "]";
 
-
+    /**
+     * 加载多注册中心，形成不同的URL
+     *
+     * @param: interfaceConfig 实例配置
+     * @param: provider 是否发布
+     * @return: java.util.List<org.apache.dubbo.common.URL>
+     * @Author: yhb
+     * @Date: 2021/6/24
+     */
     public static List<URL> loadRegistries(AbstractInterfaceConfig interfaceConfig, boolean provider) {
         // check && override if necessary
         List<URL> registryList = new ArrayList<URL>();
         ApplicationConfig application = interfaceConfig.getApplication();
+        // 得到所有的注册中心
         List<RegistryConfig> registries = interfaceConfig.getRegistries();
+        // 如果不为空
         if (CollectionUtils.isNotEmpty(registries)) {
+            // 遍历所有的注册中心
             for (RegistryConfig config : registries) {
+                // 得到注册中心的地址
                 String address = config.getAddress();
+                // 如果为空，则设为本机IP
                 if (StringUtils.isEmpty(address)) {
                     address = ANYHOST_VALUE;
                 }
+                // 当前是否为直连
                 if (!RegistryConfig.NO_AVAILABLE.equalsIgnoreCase(address)) {
+                    // 该map中存放要组装URL的元数据
                     Map<String, String> map = new HashMap<String, String>();
+                    // 将标签或是注解<dubbo:application>的属性存入map
                     AbstractConfig.appendParameters(map, application);
+                    // 将标签或是注解<dubbo:service>中的属性存入map
                     AbstractConfig.appendParameters(map, config);
                     map.put(PATH_KEY, RegistryService.class.getName());
+                    // 设置运行时的一些参数到map中
                     AbstractInterfaceConfig.appendRuntimeParameters(map);
+                    // 如果map中不包含协议，也就是说没有手动的去指定使用何种协议，默认采用dubbo
                     if (!map.containsKey(PROTOCOL_KEY)) {
                         map.put(PROTOCOL_KEY, DUBBO_PROTOCOL);
                     }
+                    /*
+                        一个地址根据不同的协议解析出不同的URL，下面是ZK为注册中心时的URL
+                        zookeeper://127.0.0.1:2181/org.apache.dubbo.registry.RegistryService?
+                        application=dubbo-demo-annotation-provider&dubbo=2.0.2&id=registryConfig&pid=57297&
+                        timestamp=1624496239234
+                     */
                     List<URL> urls = UrlUtils.parseURLs(address, map);
 
                     if (urls == null) {
                         throw new IllegalStateException(String.format("url should not be null,address is %s", address));
                     }
                     for (URL url : urls) {
-
                         url = URLBuilder.from(url)
                                 .addParameter(REGISTRY_KEY, url.getProtocol())
                                 .setProtocol(extractRegistryType(url))
@@ -232,7 +256,8 @@ public class ConfigValidationUtils {
             if (provider) {
                 // for registries enabled service discovery, automatically register interface compatible addresses.
                 if (SERVICE_REGISTRY_PROTOCOL.equals(registryURL.getProtocol())
-                        && registryURL.getParameter(REGISTRY_PUBLISH_INTERFACE_KEY, ConfigurationUtils.getDynamicGlobalConfiguration().getBoolean(DUBBO_PUBLISH_INTERFACE_DEFAULT_KEY, false))
+                        && registryURL.getParameter(REGISTRY_PUBLISH_INTERFACE_KEY,
+                        ConfigurationUtils.getDynamicGlobalConfiguration().getBoolean(DUBBO_PUBLISH_INTERFACE_DEFAULT_KEY, false))
                         && registryNotExists(registryURL, registryList, REGISTRY_PROTOCOL)) {
                     URL interfaceCompatibleRegistryURL = URLBuilder.from(registryURL)
                             .setProtocol(REGISTRY_PROTOCOL)
@@ -301,7 +326,8 @@ public class ConfigValidationUtils {
      * Legitimacy check and setup of local simulated operations. The operations can be a string with Simple operation or
      * a classname whose {@link Class} implements a particular function
      *
-     * @param interfaceClass for provider side, it is the {@link Class} of the service that will be exported; for consumer
+     * @param interfaceClass for provider side, it is the {@link Class} of the service that will be exported; for
+     *                       consumer
      *                       side, it is the {@link Class} of the remote service interface that will be referenced
      */
     public static void checkMock(Class<?> interfaceClass, AbstractInterfaceConfig config) {
@@ -332,7 +358,8 @@ public class ConfigValidationUtils {
                 }
             }
         } else {
-            //Check whether the mock class is a implementation of the interfaceClass, and if it has a default constructor
+            //Check whether the mock class is a implementation of the interfaceClass, and if it has a default
+            //constructor
             MockInvoker.getMockObject(normalizedMock, interfaceClass);
         }
     }
@@ -468,7 +495,8 @@ public class ConfigValidationUtils {
     public static void validateMonitorConfig(MonitorConfig config) {
         if (config != null) {
             if (!config.isValid()) {
-                logger.info("No valid monitor config found, specify monitor info to enable collection of Dubbo statistics");
+                logger.info("No valid monitor config found, specify monitor info to enable collection of Dubbo " +
+                        "statistics");
             }
 
             checkParameterName(config.getParameters());

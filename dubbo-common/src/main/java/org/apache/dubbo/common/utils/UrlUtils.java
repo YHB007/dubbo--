@@ -161,6 +161,15 @@ public class UrlUtils {
         return u;
     }
 
+    /**
+     * 遍历所有的协议，根据不同的协议去组装URL
+     *
+     * @param: address 协议URL
+     * @param: defaults
+     * @return: java.util.List<org.apache.dubbo.common.URL>
+     * @Author: yhb
+     * @Date: 2021/6/24
+     */
     public static List<URL> parseURLs(String address, Map<String, String> defaults) {
         if (address == null || address.length() == 0) {
             return null;
@@ -169,8 +178,9 @@ public class UrlUtils {
         if (addresses == null || addresses.length == 0) {
             return null; //here won't be empty
         }
-        List<URL> registries = new ArrayList<URL>();
+        List<URL> registries = new ArrayList<>();
         for (String addr : addresses) {
+            // parseURL为具体的转换方法
             registries.add(parseURL(addr, defaults));
         }
         return registries;
@@ -313,7 +323,8 @@ public class UrlUtils {
                             if (version != null && version.length() > 0) {
                                 name = name + ":" + version;
                             }
-                            Map<String, String> newUrls = newNotify.computeIfAbsent(name, k -> new HashMap<String, String>());
+                            Map<String, String> newUrls = newNotify.computeIfAbsent(name, k -> new HashMap<String,
+                                    String>());
                             newUrls.put(url, StringUtils.toQueryString(params));
                         }
                     }
@@ -381,7 +392,8 @@ public class UrlUtils {
     public static boolean isMatch(URL consumerUrl, URL providerUrl) {
         String consumerInterface = consumerUrl.getServiceInterface();
         String providerInterface = providerUrl.getServiceInterface();
-        //FIXME accept providerUrl with '*' as interface name, after carefully thought about all possible scenarios I think it's ok to add this condition.
+        //FIXME accept providerUrl with '*' as interface name, after carefully thought about all possible scenarios I
+        //think it's ok to add this condition.
         if (!(ANY_VALUE.equals(consumerInterface)
                 || ANY_VALUE.equals(providerInterface)
                 || StringUtils.isEquals(consumerInterface, providerInterface))) {

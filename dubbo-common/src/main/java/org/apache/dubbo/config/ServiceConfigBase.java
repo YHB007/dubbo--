@@ -145,6 +145,12 @@ public abstract class ServiceConfigBase<T> extends AbstractServiceConfig {
         return provider;
     }
 
+    /**
+     * 检查服务是否发布过
+     *
+     * @Author: yhb
+     * @Date: 2021/6/23
+     */
     public boolean shouldExport() {
         Boolean export = getExport();
         // default value is true

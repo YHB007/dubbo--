@@ -204,10 +204,21 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
         }
     }
 
+    /**
+     * 存放一些运行时的信息，比如说：DUBBO的版本，时间戳等等
+     *
+     * @param: map 存放数据的map
+     * @Author: yhb
+     * @Date: 2021/6/24
+     */
     public static void appendRuntimeParameters(Map<String, String> map) {
+        // DUBBO的版本号
         map.put(DUBBO_VERSION_KEY, Version.getProtocolVersion());
+        //
         map.put(RELEASE_KEY, Version.getVersion());
+        // 时间戳
         map.put(TIMESTAMP_KEY, String.valueOf(System.currentTimeMillis()));
+        // pid
         if (ConfigUtils.getPid() > 0) {
             map.put(PID_KEY, String.valueOf(ConfigUtils.getPid()));
         }
