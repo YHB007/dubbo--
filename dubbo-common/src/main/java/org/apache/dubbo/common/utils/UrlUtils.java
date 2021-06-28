@@ -64,6 +64,18 @@ public class UrlUtils {
      */
     private static final String URL_PARAM_STARTING_SYMBOL = "?";
 
+    /**
+     * 将对应的注册中心转换为对应的URL
+     *  1. 参数判断
+     *  2. 对map进行处理，把对应的参数拿出来，例如说：host、port、username等等
+     *  3. 使用URL的有参构造器将参数转URL对象，返回出去
+     *
+     * @param: address 单个的注册中心地址：zookeeper://127.0.0.1:2181
+     * @param: defaults 存放着配置，例如：<dubbo:application>和<dubbo:service>等
+     * @return: org.apache.dubbo.common.URL
+     * @Author: yhb
+     * @Date: 2021/6/27
+     */
     public static URL parseURL(String address, Map<String, String> defaults) {
         if (address == null || address.length() == 0) {
             return null;
@@ -156,21 +168,26 @@ public class UrlUtils {
             }
         }
         if (changed) {
+            // 构建URL
             u = new URL(protocol, username, password, host, port, path, parameters);
         }
         return u;
     }
 
     /**
-     * 遍历所有的协议，根据不同的协议去组装URL
+     * 遍历所有的注册中心，将注册地址转换为对应的url
+     *  1. address可能是多个注册中心的集合，将其转换为一个字符数组
+     *  2. 遍历字符数组
+     *  3. 调用parseURL()处理每一个注册中心，将其转换为具体的URL
+     *  4. 将URL添加到registries集合中
      *
-     * @param: address 协议URL
+     * @param: address 协议URL，可能是多个，例如：zookeeper://127.0.0.1:2181
      * @param: defaults
      * @return: java.util.List<org.apache.dubbo.common.URL>
      * @Author: yhb
      * @Date: 2021/6/24
      */
-    public static List<URL> parseURLs(String address, Map<String, String> defaults) {
+        public static List<URL> parseURLs(String address, Map<String, String> defaults) {
         if (address == null || address.length() == 0) {
             return null;
         }

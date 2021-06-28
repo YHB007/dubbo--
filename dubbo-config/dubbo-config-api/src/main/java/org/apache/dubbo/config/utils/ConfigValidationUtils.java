@@ -183,7 +183,15 @@ public class ConfigValidationUtils {
     public static final String IPV6_END_MARK = "]";
 
     /**
-     * 加载多注册中心，形成不同的URL
+     * 组装URL的入口方法：
+     *  1. 得到所有的注册中心，进行遍历
+     *  2. 将配置的参数存入到map中，例如：<dubbo:application>和<dubbo:service>等等
+     *  3. 调用parseURLs()方法将address和map转化为对应的URL，返回一个list
+     *  4. 遍历上面返回的list，对URL的格式进行修改
+     *  5. list中的URL格式为：
+     *      zookeeper://127.0.0.1:2181/........ ==> registry://127.0.0.1:2181........
+     *  6. 将registry...添加到registryList中
+     *  7. 最后调用genCompatibleRegistries做一下处理
      *
      * @param: interfaceConfig 实例配置
      * @param: provider 是否发布
