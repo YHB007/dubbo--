@@ -128,12 +128,10 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
     private static final Protocol PROTOCOL = ExtensionLoader.getExtensionLoader(Protocol.class).getAdaptiveExtension();
 
     /**
-     * A {@link ProxyFactory} implementation that will generate a exported service proxy,the JavassistProxyFactory is
-     * its
+     * A {@link ProxyFactory} implementation that will generate a exported service proxy,the JavassistProxyFactory is its
      * default implementation
      */
-    private static final ProxyFactory PROXY_FACTORY =
-            ExtensionLoader.getExtensionLoader(ProxyFactory.class).getAdaptiveExtension();
+    private static final ProxyFactory PROXY_FACTORY = ExtensionLoader.getExtensionLoader(ProxyFactory.class).getAdaptiveExtension();
 
     /**
      * Whether the provider has been exported
@@ -213,12 +211,6 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
         dispatch(new ServiceConfigUnexportedEvent(this));
     }
 
-    /**
-     * 服务暴露核心入口
-     *
-     * @Author: yhb
-     * @Date: 2021/6/27
-     */
     @Override
     public synchronized void export() {
         if (bootstrap == null) {
@@ -247,7 +239,7 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
             // 懒汉式
             DELAY_EXPORT_EXECUTOR.schedule(this::doExport, getDelay(), TimeUnit.MILLISECONDS);
         } else {
-            // 恶汉式：核心流程之一
+            // 恶汉式：核心流程入口
             doExport();
         }
 
@@ -258,8 +250,7 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
         List<URL> exportedURLs = this.getExportedUrls();
         exportedURLs.forEach(url -> {
             // dubbo2.7.x does not register serviceNameMapping information with the registry by default.
-            // Only when the user manually turns on the service introspection, can he register with the registration
-            //center.
+            // Only when the user manually turns on the service introspection, can he register with the registration center.
             boolean isServiceDiscovery = UrlUtils.isServiceDiscoveryRegistryType(url);
             if (isServiceDiscovery) {
                 Map<String, String> parameters = getApplication().getParameters();
@@ -358,10 +349,8 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
                 serviceMetadata
         );
         /*
-            这个方法是入口，根据配置文件中的参数，将其转换为对应的URL
-            将provider封装成为对应URL，以zk为例：
-                registry://127.0.0.1:2181/org.apache.dubbo.registry
-                .RegistryService?application=dubbo-demo-annotation-provider&
+            将provider封装成为对应URL，这是个入口方法，以zk为例：
+                registry://127.0.0.1:2181/org.apache.dubbo.registry.RegistryService?application=dubbo-demo-annotation-provider&
                 dubbo=2.0.2&id=registryConfig&pid=57297&registry=zookeeper&timestamp=1624496239234
          */
         List<URL> registryURLs = ConfigValidationUtils.loadRegistries(this, true);
@@ -379,8 +368,7 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
         }
     }
 
-    private void doExportUrlsFor1Protocol(ProtocolConfig protocolConfig, List<URL> registryURLs,
-                                          int protocolConfigNum) {
+    private void doExportUrlsFor1Protocol(ProtocolConfig protocolConfig, List<URL> registryURLs, int protocolConfigNum) {
 
         // 获取协议名字
         String name = protocolConfig.getName();
@@ -437,12 +425,10 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
                                         if (argument.getIndex() != -1) {
                                             if (argtypes[argument.getIndex()].getName().equals(argument.getType())) {
                                                 AbstractConfig
-                                                        .appendParameters(map, argument,
-                                                                method.getName() + "." + argument.getIndex());
+                                                        .appendParameters(map, argument, method.getName() + "." + argument.getIndex());
                                             } else {
                                                 throw new IllegalArgumentException(
-                                                        "Argument config error : the index attribute and type " +
-                                                                "attribute not match :index :" +
+                                                        "Argument config error : the index attribute and type attribute not match :index :" +
                                                                 argument.getIndex() + ", type:" + argument.getType());
                                             }
                                         } else {
@@ -450,12 +436,10 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
                                             for (int j = 0; j < argtypes.length; j++) {
                                                 Class<?> argclazz = argtypes[j];
                                                 if (argclazz.getName().equals(argument.getType())) {
-                                                    AbstractConfig.appendParameters(map, argument,
-                                                            method.getName() + "." + j);
+                                                    AbstractConfig.appendParameters(map, argument, method.getName() + "." + j);
                                                     if (argument.getIndex() != -1 && argument.getIndex() != j) {
                                                         throw new IllegalArgumentException(
-                                                                "Argument config error : the index attribute and type" +
-                                                                        " attribute not match :index :" +
+                                                                "Argument config error : the index attribute and type attribute not match :index :" +
                                                                         argument.getIndex() + ", type:" + argument.getType());
                                                     }
                                                 }
@@ -465,12 +449,10 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
                                 }
                             }
                         } else if (argument.getIndex() != -1) {
-                            AbstractConfig.appendParameters(map, argument,
-                                    method.getName() + "." + argument.getIndex());
+                            AbstractConfig.appendParameters(map, argument, method.getName() + "." + argument.getIndex());
                         } else {
                             throw new IllegalArgumentException(
-                                    "Argument config must set index or type attribute.eg: <dubbo:argument index='0' ." +
-                                            "../> or <dubbo:argument type=xxx .../>");
+                                    "Argument config must set index or type attribute.eg: <dubbo:argument index='0' .../> or <dubbo:argument type=xxx .../>");
                         }
 
                     }
@@ -520,8 +502,7 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
         Integer port = findConfigedPorts(protocolConfig, name, map, protocolConfigNum);
         /*
             使用协议名称、主机、端口、service和元数据(map)组装一个URL，示例如下：
-            dubbo://192.168.8.239:20880/org.apache.dubbo.demo
-            .DemoService?anyhost=true&application=dubbo-demo-annotation-provider&
+            dubbo://192.168.8.239:20880/org.apache.dubbo.demo.DemoService?anyhost=true&application=dubbo-demo-annotation-provider&
             bind.ip=192.168.8.239&bind.port=20880&deprecated=false&dubbo=2.0.2&dynamic=true&generic=false&
             interface=org.apache.dubbo.demo.DemoService&methods=sayHello,sayHelloAsync&pid=58402&release=&
             service.name=ServiceBean:/org.apache.dubbo.demo.DemoService&side=provider&timestamp=1624498066749
@@ -569,8 +550,7 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
                         }
                         if (logger.isInfoEnabled()) {
                             if (url.getParameter(REGISTER_KEY, true)) {
-                                logger.info("Register dubbo service " + interfaceClass.getName() + " url " + url + " " +
-                                        "to registry " +
+                                logger.info("Register dubbo service " + interfaceClass.getName() + " url " + url + " to registry " +
                                         registryURL);
                             } else {
                                 logger.info("Export dubbo service " + interfaceClass.getName() + " to url " + url);
@@ -586,8 +566,7 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
                         Invoker<?> invoker = PROXY_FACTORY.getInvoker(ref, (Class) interfaceClass,
                                 registryURL.addParameterAndEncoded(EXPORT_KEY, url.toFullString()));
                         // 使用<dubbo:service>的配置，对Invoke再次进行一次封装，形成一个真正用于暴露的Invoke
-                        DelegateProviderMetaDataInvoker wrapperInvoker = new DelegateProviderMetaDataInvoker(invoker,
-                                this);
+                        DelegateProviderMetaDataInvoker wrapperInvoker = new DelegateProviderMetaDataInvoker(invoker, this);
                         // 执行真正的远程服务暴露(会注册到注册中心)
                         Exporter<?> exporter = PROTOCOL.export(wrapperInvoker);
                         exporters.add(exporter);
@@ -655,8 +634,7 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
 
         String hostToBind = getValueFromConfig(protocolConfig, DUBBO_IP_TO_BIND);
         if (hostToBind != null && hostToBind.length() > 0 && isInvalidLocalHost(hostToBind)) {
-            throw new IllegalArgumentException("Specified invalid bind ip from property:" + DUBBO_IP_TO_BIND + ", " +
-                    "value:" + hostToBind);
+            throw new IllegalArgumentException("Specified invalid bind ip from property:" + DUBBO_IP_TO_BIND + ", value:" + hostToBind);
         }
 
         // if bind ip is not found in environment, keep looking up
@@ -685,8 +663,7 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
                                 continue;
                             }
                             try (Socket socket = new Socket()) {
-                                SocketAddress addr = new InetSocketAddress(registryURL.getHost(),
-                                        registryURL.getPort());
+                                SocketAddress addr = new InetSocketAddress(registryURL.getHost(), registryURL.getPort());
                                 socket.connect(addr, 1000);
                                 hostToBind = socket.getLocalAddress().getHostAddress();
                                 break;
@@ -745,8 +722,7 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
             if (provider != null && (portToBind == null || portToBind == 0)) {
                 portToBind = provider.getPort();
             }
-            final int defaultPort =
-                    ExtensionLoader.getExtensionLoader(Protocol.class).getExtension(name).getDefaultPort();
+            final int defaultPort = ExtensionLoader.getExtensionLoader(Protocol.class).getExtension(name).getDefaultPort();
             if (portToBind == null || portToBind == 0) {
                 portToBind = defaultPort;
             }
