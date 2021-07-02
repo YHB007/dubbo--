@@ -516,7 +516,7 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
                     .getExtension(url.getProtocol()).getConfigurator(url).configure(url);
         }
 
-        // 获取<dubbo:scope>的值
+        // 获取<dubbo:scope>的值，没有指定的话默认值为null
         String scope = url.getParameter(SCOPE_KEY);
         // don't export when none is configured
         if (!SCOPE_NONE.equalsIgnoreCase(scope)) {
@@ -528,7 +528,7 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
                 exportLocal(url);
             }
             // export to remote if the config is not local (export to local only when config is local)
-            // 当scope的值不为local，则进行远程暴露
+            // 只要是scope的值不为local，则进行远程暴露
             if (!SCOPE_LOCAL.equalsIgnoreCase(scope)) {
                 // 当注册中心不为空
                 if (CollectionUtils.isNotEmpty(registryURLs)) {
@@ -593,13 +593,24 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
     @SuppressWarnings({"unchecked", "rawtypes"})
     /**
      * always export injvm
+     * 本地暴露
+     *  1. 搞清楚exporter对象是怎么产生的
+     *  2. 搞清楚org.apache.dubbo.rpc.protocol.dubbo.DubboProtocol#export是怎么执行的
+     *  3. 添加到list集合中
      */
     private void exportLocal(URL url) {
+
+        // 进入之后，会默认将protocol设置为injvm
         URL local = URLBuilder.from(url)
                 .setProtocol(LOCAL_PROTOCOL)
                 .setHost(LOCALHOST_VALUE)
                 .setPort(0)
                 .build();
+        /**
+         * 1. 执行InjvmProcotol
+         * 2. 调佣proxyFactory.getInvoker()获取代理对象，默认执行JavassistProxyFactory#getInvoker获取服务实现的invoker类
+         * 3.
+         */
         Exporter<?> exporter = PROTOCOL.export(
                 PROXY_FACTORY.getInvoker(ref, (Class) interfaceClass, local));
         exporters.add(exporter);

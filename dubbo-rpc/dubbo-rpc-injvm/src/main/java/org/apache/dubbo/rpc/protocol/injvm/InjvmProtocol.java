@@ -51,11 +51,21 @@ public class InjvmProtocol extends AbstractProtocol implements Protocol{
 
     public static InjvmProtocol getInjvmProtocol() {
         if (INSTANCE == null) {
-            ExtensionLoader.getExtensionLoader(Protocol.class).getExtension(InjvmProtocol.NAME); // load
+            ExtensionLoader.getExtensionLoader(Protocol.class).getExtension(InjvmProtocol.NAME);
         }
         return INSTANCE;
     }
 
+    /**
+     * 通过key中InjvmProcotol的缓存中去尝试获取数据，说明本地没得服务暴露
+     * 如果没的数据，则返回null
+     *
+     * @param: delegateExporterMap
+     * @param: key
+     * @return: org.apache.dubbo.rpc.Exporter<?>
+     * @Author: yhb
+     * @Date: 2021/7/2
+     */
     static Exporter<?> getExporter(DelegateExporterMap delegateExporterMap, URL key) {
         Exporter<?> result = null;
 
@@ -89,8 +99,11 @@ public class InjvmProtocol extends AbstractProtocol implements Protocol{
 
     @Override
     public <T> Exporter<T> export(Invoker<T> invoker) throws RpcException {
+
+        // serviceKey:org.apache.dubbo.demo.DemoService
         String serviceKey = invoker.getUrl().getServiceKey();
         InjvmExporter<T> tInjvmExporter = new InjvmExporter<>(invoker, serviceKey, exporterMap);
+        // 存入Injvm管理的exporterMap缓存中去
         exporterMap.addExportMap(serviceKey, tInjvmExporter);
         return tInjvmExporter;
     }
@@ -100,7 +113,17 @@ public class InjvmProtocol extends AbstractProtocol implements Protocol{
         return new InjvmInvoker<T>(serviceType, url, url.getServiceKey(), exporterMap);
     }
 
+    /**
+     * 1. 如果没有设置scope，那么scope的值为null
+     * 2. 最后会走到getExporter()方法，这个方式是从
+     * @param: url URL对象
+     * @return: boolean
+     * @Author: yhb
+     * @Date: 2021/7/2
+     */
     public boolean isInjvmRefer(URL url) {
+
+        // 没有设置为就是null
         String scope = url.getParameter(SCOPE_KEY);
         // Since injvm protocol is configured explicitly, we don't need to set any extra flag, use normal refer process.
         if (SCOPE_LOCAL.equals(scope) || (url.getParameter(LOCAL_PROTOCOL, false))) {

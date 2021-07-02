@@ -328,6 +328,8 @@ public class ReferenceConfig<T> extends ReferenceConfigBase<T> {
 
     @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
     private T createProxy(Map<String, String> map) {
+
+        // 是否引用本地服务
         if (shouldJvmRefer(map)) {
             URL url = new URL(LOCAL_PROTOCOL, LOCALHOST_VALUE, 0, interfaceClass.getName()).addParameters(map);
             invoker = REF_PROTOCOL.refer(interfaceClass, url);
@@ -336,7 +338,8 @@ public class ReferenceConfig<T> extends ReferenceConfigBase<T> {
             }
         } else {
             urls.clear();
-            if (url != null && url.length() > 0) { // user specified URL, could be peer-to-peer address, or register center's address.
+            // user specified URL, could be peer-to-peer address, or register center's address.
+            if (url != null && url.length() > 0) {
                 String[] us = SEMICOLON_SPLIT_PATTERN.split(url);
                 if (us != null && us.length > 0) {
                     for (String u : us) {
@@ -501,7 +504,7 @@ public class ReferenceConfig<T> extends ReferenceConfigBase<T> {
             if (url != null && url.length() > 0) {
                 isJvmRefer = false;
             } else {
-                // by default, reference local service if there is
+                // 一般情况下回来到这里走isInjvmRefer方法
                 isJvmRefer = InjvmProtocol.getInjvmProtocol().isInjvmRefer(tmpUrl);
             }
         } else {

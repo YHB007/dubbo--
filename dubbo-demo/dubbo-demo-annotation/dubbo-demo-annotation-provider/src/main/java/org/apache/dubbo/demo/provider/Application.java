@@ -41,5 +41,13 @@ public class Application {
             registryConfig.setAddress("zookeeper://127.0.0.1:2181");
             return registryConfig;
         }
+
+        //@Bean
+        public RegistryConfig registryConfigToRedis() {
+            RegistryConfig registryConfig = new RegistryConfig();
+            registryConfig.setAddress("redis://127.0.0.1:6379");
+            return registryConfig;
+        }
+
     }
 }
