@@ -270,10 +270,20 @@ public class RegistryProtocol implements Protocol {
         return serviceConfigurationListener.overrideUrl(providerUrl);
     }
 
+    /**
+     * 其内部主要调用DubboProtocol的export()方法
+     *  还完成了invoker到export的转换
+     * @param: originInvoker
+     * @param: providerUrl
+     * @return: org.apache.dubbo.registry.integration.RegistryProtocol.ExporterChangeableWrapper<T>
+     * @Author: yhb
+     * @Date: 2021/7/10
+     */
     @SuppressWarnings("unchecked")
     private <T> ExporterChangeableWrapper<T> doLocalExport(final Invoker<T> originInvoker, URL providerUrl) {
         String key = getCacheKey(originInvoker);
 
+        // 这里的协议是Dubbo
         return (ExporterChangeableWrapper<T>) bounds.computeIfAbsent(key, s -> {
             Invoker<?> invokerDelegate = new InvokerDelegate<>(originInvoker, providerUrl);
             return new ExporterChangeableWrapper<>((Exporter<T>) protocol.export(invokerDelegate), originInvoker);

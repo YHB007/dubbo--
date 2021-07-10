@@ -171,9 +171,11 @@ public class HeaderExchangeHandler implements ChannelHandlerDelegate {
             if (request.isEvent()) {
                 handlerEvent(channel, request);
             } else {
+                // 需要有返回值的请求
                 if (request.isTwoWay()) {
                     handleRequest(exchangeChannel, request);
                 } else {
+                    // 不需要有返回值的请求
                     handler.received(exchangeChannel, request.getData());
                 }
             }

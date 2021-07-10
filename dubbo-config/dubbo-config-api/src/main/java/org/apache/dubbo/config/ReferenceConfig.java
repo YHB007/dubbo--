@@ -198,11 +198,18 @@ public class ReferenceConfig<T> extends ReferenceConfigBase<T> {
         this.services = services;
     }
 
+    /**
+     * 服务消费方启动的入口方法
+     *
+     * @Author: yhb
+     * @Date: 2021/7/9
+     */
     public synchronized T get() {
         if (destroyed) {
             throw new IllegalStateException("The invoker of ReferenceConfig(" + url + ") has already destroyed!");
         }
         if (ref == null) {
+            // 下一步
             init();
         }
         return ref;
@@ -229,6 +236,12 @@ public class ReferenceConfig<T> extends ReferenceConfigBase<T> {
         dispatch(new ReferenceConfigDestroyedEvent(this));
     }
 
+    /**
+     * 初始化
+     *
+     * @Author: yhb
+     * @Date: 2021/7/9
+     */
     public synchronized void init() {
         if (initialized) {
             return;
@@ -329,9 +342,11 @@ public class ReferenceConfig<T> extends ReferenceConfigBase<T> {
     @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
     private T createProxy(Map<String, String> map) {
 
-        // 是否引用本地服务
+        // 是否引用本地服务，true为本地，false为远程DubboLifecycleComponentApplicationListener
         if (shouldJvmRefer(map)) {
+            // 创建一个本地URL，host为本机，port为0，协议为injvm
             URL url = new URL(LOCAL_PROTOCOL, LOCALHOST_VALUE, 0, interfaceClass.getName()).addParameters(map);
+            // SPI拓展，经过一层层的调用才能到InjvmProtocol的refer方法
             invoker = REF_PROTOCOL.refer(interfaceClass, url);
             if (logger.isInfoEnabled()) {
                 logger.info("Using injvm service " + interfaceClass.getName());
@@ -495,6 +510,17 @@ public class ReferenceConfig<T> extends ReferenceConfigBase<T> {
      * 3. otherwise, check scope parameter
      * 4. if scope is not specified but the target service is provided in the same JVM, then prefer to make the local
      * call, which is the default behavior
+     */
+    /**
+     * 决定是开启远程引用还是本地引用
+     *  - 一系列的判断
+     *  - 一般会走到isInjvmRefer()方法
+     *  - isInjvmRefer()又会执行InjvmProtocol#getExporter，从exporterMap缓存中查看是否有本地暴露的服务
+     *
+     * @param: map
+     * @return: boolean true：本地引用，false：远程引用
+     * @Author: yhb
+     * @Date: 2021/7/8
      */
     protected boolean shouldJvmRefer(Map<String, String> map) {
         URL tmpUrl = new URL("temp", "localhost", 0, map);

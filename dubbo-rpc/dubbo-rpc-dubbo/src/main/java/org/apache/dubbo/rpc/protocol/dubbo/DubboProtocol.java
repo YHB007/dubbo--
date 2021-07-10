@@ -173,6 +173,7 @@ public class DubboProtocol extends AbstractProtocol {
         }
 
         private void invoke(Channel channel, String methodKey) {
+            // 创建Invocation对象
             Invocation invocation = createInvocation(channel, channel.getUrl(), methodKey);
             if (invocation != null) {
                 try {
@@ -279,13 +280,24 @@ public class DubboProtocol extends AbstractProtocol {
         return DEFAULT_PORT;
     }
 
+    /**
+     * 核心的方法
+     *
+     * @param: invoker
+     * @return: org.apache.dubbo.rpc.Exporter<T>
+     * @Author: yhb
+     * @Date: 2021/7/10
+     */
     @Override
     public <T> Exporter<T> export(Invoker<T> invoker) throws RpcException {
+
         URL url = invoker.getUrl();
 
         // export service.
         String key = serviceKey(url);
+        // 从Invoker到Exporter的转变
         DubboExporter<T> exporter = new DubboExporter<T>(invoker, key, exporterMap);
+        // 添加到缓存中，服务提供方处理请求时会从中获取出来
         exporterMap.addExportMap(key, exporter);
 
         //export an stub service for dispatching event
@@ -301,22 +313,33 @@ public class DubboProtocol extends AbstractProtocol {
 
             }
         }
-
+        // 同一个机器的不同服务导出只会开启一个NettyServer
         openServer(url);
         optimizeSerialization(url);
 
         return exporter;
     }
 
+    /**
+     * 查看serverMaap中是否有对应的服务，如果没有就调用createServer方法来创建
+     *  在这里同一台机器只会有一个server会被创建
+     *
+     * @Author: yhb
+     * @Date: 2021/7/4
+     */
     private void openServer(URL url) {
-        // find server.
+        // 获取机器IP+port
         String key = url.getAddress();
-        //client can export a service which's only for server to invoke
+        // 判断是否为服务提供端
         boolean isServer = url.getParameter(IS_SERVER_KEY, true);
         if (isServer) {
+            // 从本地缓存中根据key获取服务
             ProtocolServer server = serverMap.get(key);
+            // 没有对应的服务
             if (server == null) {
+                // ip+port是唯一的，多个不同的服务启动时只有第一个才会被创建，后面的服务都是从缓存中拿
                 synchronized (this) {
+                    // 二次判断
                     server = serverMap.get(key);
                     if (server == null) {
                         serverMap.put(key, createServer(url));
@@ -329,6 +352,14 @@ public class DubboProtocol extends AbstractProtocol {
         }
     }
 
+    /**
+     * 创建服务
+     *
+     * @param: url URL对象
+     * @return: org.apache.dubbo.rpc.ProtocolServer
+     * @Author: yhb
+     * @Date: 2021/7/4
+     */
     private ProtocolServer createServer(URL url) {
         url = URLBuilder.from(url)
                 // send readonly event when server closes, it's enabled by default
