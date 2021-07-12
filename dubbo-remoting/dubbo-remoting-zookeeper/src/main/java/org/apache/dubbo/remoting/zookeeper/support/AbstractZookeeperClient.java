@@ -68,6 +68,19 @@ public abstract class AbstractZookeeperClient<TargetDataListener, TargetChildLis
     }
 
 
+    /**
+     *
+     *
+     * @param: path /dubbo/org.apache.dubbo.demo.DemoService/providers/dubbo%3A%2F%2F192.168.8.239%3A20880%2F
+     * org.apache.dubbo.demo.DemoService%3Fanyhost%3Dtrue%26application%3Ddubbo-demo-annotation-provider%26deprecated%3D
+     * false%26dubbo%3D2.0.2%26dynamic%3Dtrue%26generic%3Dfalse%26interface%3Dorg.apache.dubbo.demo.DemoService%26methods
+     * %3DsayHello%2CsayHelloAsync%26pid%3D44559%26release%3D%26service.name%3DServiceBean%3A%2F
+     * org.apache.dubbo.demo.DemoService%26side%3Dprovider%26timestamp%3D1625978399128
+     * @param: ephemeral
+     * @return: void
+     * @Author: yhb
+     * @Date: 2021/7/11
+     */
     @Override
     public void create(String path, boolean ephemeral) {
         if (!ephemeral) {
